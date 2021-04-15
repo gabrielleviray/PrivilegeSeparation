@@ -5,6 +5,9 @@
 #include <netinet/in.h> 
 #include <string.h> 
 
+#include <arpa/inet.h>
+#include <unistd.h>
+
 #define PORT 80
    
 int main(int argc, char const *argv[]) 

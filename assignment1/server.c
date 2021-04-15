@@ -7,6 +7,9 @@
 #include <netinet/in.h>
 #include <string.h>
 
+#include <unistd.h>
+#include <sys/wait.h>
+
 #define PORT 80
 int main(int argc, char const *argv[])
 {
@@ -17,7 +20,12 @@ int main(int argc, char const *argv[])
     char buffer[102] = {0};
     char *hello = "Hello from server";
 
+    pid_t pid_curr;
+    pid_t pid_parent;
+    pid_curr = getpid();
+
     printf("execve=0x%p\n", execve);
+
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -55,9 +63,46 @@ int main(int argc, char const *argv[])
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    valread = read( new_socket , buffer, 1024);
-    printf("%s\n",buffer );
-    send(new_socket , hello , strlen(hello) , 0 );
-    printf("Hello message sent\n");
+
+    // ##################################################################
+    // #                                                                #
+    // #                      Separation                                #
+    // #                                                                #
+    // ##################################################################
+
+    // Create child process
+    pid_t sub_pid = fork();
+
+    if (sub_pid < 0){
+        perror("fork error");
+        exit(EXIT_FAILURE);
+    }
+
+    // Child Process
+    else if (sub_pid == 0) {
+        if (setuid(65534) < 0){
+            perror( "privilege drop error");
+            exit(EXIT_FAILURE);
+        }
+
+        valread = read( new_socket, buffer, 1024);
+
+        if(valread < 0){
+            perror("read error");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("%s\n",buffer );
+        send(new_socket , hello , strlen(hello) , 0 );
+        printf("Hello message sent\n");
+
+    }
+
+    // Parent waits for child process
+    else {
+        int s = 0;
+        while ((wait(&s)) > 0);     
+    }
+
     return 0;
 }
