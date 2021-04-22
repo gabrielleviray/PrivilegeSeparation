@@ -1,3 +1,0 @@
-# PrivilegeSeparation
-
-## Team: Gabrielle 
