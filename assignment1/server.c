@@ -7,7 +7,6 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#include <unistd.h>
 #include <sys/wait.h>
 
 #define PORT 80
